@@ -1,15 +1,16 @@
 import Head from "next/head";
-import { signIn, signOut, useSession, SignInResponse } from "next-auth/client";
+import { signIn, useSession, SignInResponse } from "next-auth/client";
 import { NextPage } from "next";
 import { LoginIcon } from "@heroicons/react/outline";
-
+import Footer from "../components/footer";
+import Nav from "../components/nav";
 const Home: NextPage = () => {
-  const [session] = useSession();
-
+  const [session, loading] = useSession();
+ 
   return (
     <>
-      {!session && (
-        <>      
+      {!session && !loading && (
+        <>
           <div className="flex flex-col items-center justify-center min-h-screen p-2 bg-green-200">
             <div className="max-w-md py-4 px-8 bg-white shadow-lg rounded-lg my-20">
               <div className="flex justify-center md:justify-end -mt-16">
@@ -40,84 +41,22 @@ const Home: NextPage = () => {
           </div>
         </>
       )}
-      {session && (
+      {session &&(
         <>
           <div className="flex flex-col items-center justify-center min-h-screen">
             <Head>
-              <title>Create Next App</title>
-              <link rel="icon" href="/favicon.ico" />
+              <title>Supermarket List</title>
+              <link rel="icon" href="/grocery.ico" />
             </Head>
-            <button onClick={(): Promise<void> => signOut()}>Sign out</button>
-            <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
-              <h1 className="text-6xl font-bold">
-                Welcome to{" "}
-                <a className="text-blue-600" href="https://nextjs.org">
-                  Next.js!
-                </a>
-              </h1>
-
-              <p className="mt-3 text-2xl">
-                Get started by editing{" "}
-                <code className="p-3 font-mono text-lg bg-gray-100 rounded-md">
-                  pages/index.js
-                </code>
-              </p>
-
-              <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full">
-                <a
-                  href="https://nextjs.org/docs"
-                  className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-                >
-                  <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-                  <p className="mt-4 text-xl">
-                    Find in-depth information about Next.js features and API.
-                  </p>
-                </a>
-
-                <a
-                  href="https://nextjs.org/learn"
-                  className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-                >
-                  <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-                  <p className="mt-4 text-xl">
-                    Learn about Next.js in an interactive course with quizzes!
-                  </p>
-                </a>
-
-                <a
-                  href="https://github.com/vercel/next.js/tree/master/examples"
-                  className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-                >
-                  <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-                  <p className="mt-4 text-xl">
-                    Discover and deploy boilerplate example Next.js projects.
-                  </p>
-                </a>
-
-                <a
-                  href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                  className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600"
-                >
-                  <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-                  <p className="mt-4 text-xl">
-                    Instantly deploy your Next.js site to a public URL with
-                    Vercel.
-                  </p>
-                </a>
+            <div className="h-screen w-screen flex bg-gray-200">
+            <Nav children="home" />
+             <div className="flex flex-col flex-1 w-full overflow-y-auto">             
+                <main className="relative z-0 flex-1 pb-8 px-6 bg-white">
+                  <div className="grid pb-10  mt-4 "></div>
+                </main>
+                <Footer />
               </div>
-            </main>
-
-            <footer className="flex items-center justify-center w-full h-24 border-t">
-              <a
-                className="flex items-center justify-center"
-                href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Powered by{" "}
-                <img src="/vercel.svg" alt="Vercel Logo" className="h-4 ml-2" />
-              </a>
-            </footer>
+            </div>
           </div>
         </>
       )}
