@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from "next";
-import connect from "../../utils/database";
+import connect from "../../../utils/database";
 import { ObjectID } from "mongodb";
 import { getSession } from "next-auth/client";
 
@@ -88,10 +88,19 @@ export default async (
         }
         break;
       }
-      default:       
+      default: {
+        const { email } = req.query;
+
+        if (!email) {
+          res.status(400).json({ error: "Missing e-mail on request body" });
+          return;
+        }
+        response = await db.collection("cart").findOne({ email });
+        res.status(200).json(response);
         break;
+      }
     }
   } else {
-    res.status(401).json({error: "Not authorized"});
+    res.status(401).json({ error: "Not authorized" });
   }
 };
