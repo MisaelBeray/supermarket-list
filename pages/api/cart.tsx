@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from "next";
 import connect from "../../utils/database";
-import { ObjectID } from "mongodb";
+/* import { ObjectID } from "mongodb"; */
 import { getSession } from "next-auth/client";
 
 interface ErrorResponseType {
@@ -17,7 +17,6 @@ interface SuccessResponseType {
       name: string;
       unPrice: number;
       qty: number;
-      totalProducts: number;
       totalPrice: number;
     }
   ];
@@ -36,31 +35,47 @@ export default async (
     switch (req.method) {
       case "POST": {
         const {
+          email,
+          updatedAt,
           itens,
           totalCart,
         }: {
-          itens: [
-            {
-              name: string;
-              unPrice: number;
-              qty: number;
-              totalProducts: number;
-              totalPrice: number;
-            }
-          ];
+          email: string;
+          updatedAt: string;
+          itens: {
+            unPrice: number;
+            qty: number;
+            totalPrice: number;
+          };
           totalCart: number;
         } = req.body;
 
-        response = await db.collection("cart").insertOne({
-          itens,
-          totalCart,
-        });
+        await db
+          .collection("cart")
+          .updateOne(
+            { email: email },
+            {
+              $set: {
+                itens: itens,
+                updatedAt: updatedAt,
+                totalCart: totalCart,
+              },
+            }
+          );
 
-        res.status(200).json(response.ops[0]);
+        res.status(200).json(response);
         break;
       }
       case "DELETE": {
-        const {
+       /*  const {
+          id,
+          email,
+        }: {
+          id: number;
+          email: string;
+        } = req.body; */
+
+        /* const {
           _id,
         }: {
           _id: string;
@@ -85,13 +100,13 @@ export default async (
         if (!response) {
           res.status(400).json({ error: `Cart with ID ${id} not found` });
           return;
-        }
+        } */
         break;
       }
-      default:       
+      default:
         break;
     }
   } else {
-    res.status(401).json({error: "Not authorized"});
+    res.status(401).json({ error: "Not authorized" });
   }
 };

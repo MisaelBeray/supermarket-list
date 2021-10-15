@@ -4,6 +4,10 @@ import { NextPage, NextComponentType } from "next";
 import { LoginIcon } from "@heroicons/react/outline";
 import useSWR from "swr";
 import api from "../utils/api";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useState, useEffect } from "react";
+import axios from "axios";
+import truncate from "../utils/truncate";
 
 const ProgressPurchase: NextComponentType = ({ children }) => {
   interface Purchase {
@@ -76,11 +80,89 @@ const ProgressPurchase: NextComponentType = ({ children }) => {
 
 const Home: NextPage = () => {
   const [session, loading] = useSession();
+  const [items, setItens] = useState(null);
+  const [qty, setQty] = useState(null);
+  const [price, setPrice] = useState(null);
+  const [totalCart, setTotalCart] = useState(null);
 
   const { data } = useSWR(
     !loading ? `/api/cart/${session?.user.email}` : null,
     api
   );
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  const handleDelete = async (itemNumber) => {
+    const data = {
+      email: session?.user?.email,
+      id: itemNumber,
+    };
+
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_URL}/api/cart`, { data });
+    } catch (err) {
+      alert(
+        err?.response?.data?.error || "Houve um problema na adição do item"
+      );
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    let newItems = [];
+    newItems = items;
+    newItems.push({
+      unPrice: Number(price),
+      qty: Number(qty),
+      totalPrice: Number(qty) * Number(price),
+    });
+
+    setItens(newItems);
+
+    const result = newItems.reduce(function (acc, obj) {
+      return acc + obj.totalPrice;
+    }, 0);
+
+    setTotalCart(Number(truncate(result, 2)));
+
+    const data = {
+      email: session?.user?.email,
+      updatedAt: Date.now,
+      itens: items,
+      totalCart: Number(truncate(result, 2)),
+    };
+
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_URL}/api/cart`, data);
+    } catch (err) {
+      alert(
+        err?.response?.data?.error || "Houve um problema na adição do item"
+      );
+    }
+
+    closeModal();
+  };
+
+  useEffect(() => {
+    setItens(data?.data?.itens);
+
+    if (data?.data?.itens.length) {
+      const result = data?.data?.itens.reduce(function (acc, obj) {
+        return acc + obj.totalPrice;
+      }, 0);
+
+      setTotalCart(Number(truncate(result, 2)));
+    }
+  }, [data?.data]);
 
   return (
     <>
@@ -124,6 +206,101 @@ const Home: NextPage = () => {
               <link rel="icon" href="/grocery.ico" />
             </Head>
 
+            <Transition appear show={isOpen} as={Fragment}>
+              <Dialog
+                as="div"
+                className="fixed inset-0 z-10 overflow-y-auto"
+                onClose={closeModal}
+              >
+                <div className="min-h-screen px-4 text-center">
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Dialog.Overlay className="fixed inset-0" />
+                  </Transition.Child>
+
+                  <span
+                    className="inline-block h-screen align-middle"
+                    aria-hidden="true"
+                  >
+                    &#8203;
+                  </span>
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0 scale-95"
+                    enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100 scale-100"
+                    leaveTo="opacity-0 scale-95"
+                  >
+                    <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-gray-100 shadow-xl rounded-2xl">
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg font-medium leading-6 text-gray-900"
+                      >
+                        Adicionar Novo Item
+                      </Dialog.Title>
+                      <form onSubmit={handleSubmit}>
+                        <div className="mt-2">
+                          <div className="m-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Un.
+                            </label>
+                            <div className="mt-2 relative rounded-md">
+                              <input
+                                type="text"
+                                name="qty"
+                                id="qty"
+                                className="focus:ring-indigo-500 border border-gray-300 py-2 px-4 focus:border-indigo-500 block w-2/4 pr-12 sm:text-sm rounded-md"
+                                placeholder="0"
+                                onChange={(e) => setQty(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="m-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Preço
+                            </label>
+                            <div className="mt-2 relative rounded-md">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 sm:text-sm">
+                                  R$
+                                </span>
+                              </div>
+                              <input
+                                type="text"
+                                name="price"
+                                id="price"
+                                className="focus:ring-indigo-500 border border-gray-300 py-2 px-4 focus:border-indigo-500 block w-2/4 pl-9 pr-12 sm:text-sm rounded-md"
+                                placeholder="0.00"
+                                onChange={(e) => setPrice(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-8  flex flex-col items-end justify-end ">
+                          <button
+                            type="submit"
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-green-500 border border-transparent rounded-md hover:bg-green-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-800"
+                          >
+                            Adicionar
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </Transition.Child>
+                </div>
+              </Dialog>
+            </Transition>
+
             <div className="shadow-lg rounded-2xl p-4 bg-white dark:bg-gray-800">
               <div className="flex items-center">
                 <span className="rounded-xl relative p-4 bg-purple-200">
@@ -144,7 +321,7 @@ const Home: NextPage = () => {
               </div>
               <div className="flex flex-col justify-start">
                 <p className="text-gray-700 dark:text-gray-100 text-4xl text-left font-bold my-4">
-                  {data?.data?.totalCart}
+                  {totalCart}
                   <span className="text-sm">R$</span>
                 </p>
                 <div className="flex items-center text-green-500 text-sm">
@@ -194,10 +371,14 @@ const Home: NextPage = () => {
                           >
                             Total
                           </th>
+                          <th
+                            scope="col"
+                            className="px-5 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
+                          ></th>
                         </tr>
                       </thead>
                       <tbody>
-                        {data?.data?.itens?.map((item, index) => {
+                        {data?.data?.itens?.map((item) => {
                           return (
                             <>
                               <tr>
@@ -205,7 +386,7 @@ const Home: NextPage = () => {
                                   <div className="flex items-center">
                                     <div className="ml-3">
                                       <p className="text-gray-900 whitespace-no-wrap">
-                                        {index + 1}
+                                        {item.id}
                                       </p>
                                     </div>
                                   </div>
@@ -237,6 +418,27 @@ const Home: NextPage = () => {
                                     </div>
                                   </div>
                                 </td>
+                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                  <div className="flex items-center">
+                                    <div className="ml-3">
+                                      <button
+                                        type="button"
+                                        className="flex justify-center items-center  bg-red-500 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-8 h-8 rounded-lg "
+                                        onClick={() => handleDelete(item.id)}
+                                      >
+                                        <svg
+                                          width="20"
+                                          height="20"
+                                          fill="currentColor"
+                                          viewBox="0 0 1792 1792"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                          <path d="M704 736v576q0 14-9 23t-23 9h-64q-14 0-23-9t-9-23v-576q0-14 9-23t23-9h64q14 0 23 9t9 23zm256 0v576q0 14-9 23t-23 9h-64q-14 0-23-9t-9-23v-576q0-14 9-23t23-9h64q14 0 23 9t9 23zm256 0v576q0 14-9 23t-23 9h-64q-14 0-23-9t-9-23v-576q0-14 9-23t23-9h64q14 0 23 9t9 23zm128 724v-948h-896v948q0 22 7 40.5t14.5 27 10.5 8.5h832q3 0 10.5-8.5t14.5-27 7-40.5zm-672-1076h448l-48-117q-7-9-17-11h-317q-10 2-17 11zm928 32v64q0 14-9 23t-23 9h-96v948q0 83-47 143.5t-113 60.5h-832q-66 0-113-58.5t-47-141.5v-952h-96q-14 0-23-9t-9-23v-64q0-14 9-23t23-9h309l70-167q15-37 54-63t79-26h320q40 0 79 26t54 63l70 167h309q14 0 23 9t9 23z"></path>
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </td>
                               </tr>
                             </>
                           );
@@ -247,10 +449,12 @@ const Home: NextPage = () => {
                 </div>
               </div>
             </div>
+
             <div className="flex ">
               <button
                 type="button"
-                className="py-2 px-4 flex justify-center items-center  bg-green-600 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-12 h-12 rounded-lg "
+                className="py-2 px-4 flex justify-center items-center  bg-green-500 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-12 h-12 rounded-lg "
+                onClick={openModal}
               >
                 <svg
                   width="20"
@@ -285,13 +489,13 @@ const Home: NextPage = () => {
                     </p>
                   </div>
                   <div className="border-b border-gray-200 mt-6 md:mt-0 text-black dark:text-white font-bold text-xl">
-                    R${data?.data?.totalCart}
+                    R${totalCart}
                     <span className="text-xs text-gray-400">/R$450.00</span>
                   </div>
                 </div>
                 <div className="w-full h-3 bg-gray-100">
                   <ProgressPurchase
-                    children={{ totalCart: data?.data?.totalCart, budget: 450 }}
+                    children={{ totalCart: totalCart, budget: 450 }}
                   />
                 </div>
               </a>
