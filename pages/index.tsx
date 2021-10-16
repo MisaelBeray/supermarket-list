@@ -80,7 +80,7 @@ const ProgressPurchase: NextComponentType = ({ children }) => {
 
 const Home: NextPage = () => {
   const [session, loading] = useSession();
-  const [items, setItens] = useState(null);
+  const [items, setItens] = useState([]);
   const [qty, setQty] = useState(null);
   const [price, setPrice] = useState(null);
   const [totalCart, setTotalCart] = useState(null);
@@ -106,11 +106,24 @@ const Home: NextPage = () => {
       id: itemNumber,
     };
 
+    const itemWillDelete = items.filter(item => item.id === data.id);
+    setTotalCart(truncate(totalCart - itemWillDelete[0].totalPrice, 2));
+
+    const newItems = items.filter(item => item.id !== data.id);
+    setItens(newItems);
+
+    const dataCart = {
+      email: session?.user?.email,
+      updatedAt: Date.now,
+      itens: newItems,
+      totalCart: Number(truncate(totalCart, 2)),
+    };
+
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_URL}/api/cart`, { data });
+      await axios.post(`${process.env.NEXT_PUBLIC_URL}/api/cart`, dataCart);
     } catch (err) {
       alert(
-        err?.response?.data?.error || "Houve um problema na adição do item"
+        err?.response?.dataCart?.error || "Houve um problema na adição do item"
       );
     }
   };
@@ -120,7 +133,11 @@ const Home: NextPage = () => {
 
     let newItems = [];
     newItems = items;
+
+    const lastIdItem = items.slice(-1).pop();
+    
     newItems.push({
+      id: Number(((lastIdItem || {}).id || 0) + 1),
       unPrice: Number(price),
       qty: Number(qty),
       totalPrice: Number(qty) * Number(price),
@@ -150,6 +167,7 @@ const Home: NextPage = () => {
     }
 
     closeModal();
+  
   };
 
   useEffect(() => {
@@ -378,7 +396,7 @@ const Home: NextPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {data?.data?.itens?.map((item) => {
+                        {items?.map((item) => {
                           return (
                             <>
                               <tr>
@@ -423,7 +441,7 @@ const Home: NextPage = () => {
                                     <div className="ml-3">
                                       <button
                                         type="button"
-                                        className="flex justify-center items-center  bg-red-500 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-8 h-8 rounded-lg "
+                                        className="flex justify-center items-center  bg-red-500 hover:bg-red-700 focus:ring-red-500 focus:ring-offset-red-200 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-8 h-8 rounded-lg "
                                         onClick={() => handleDelete(item.id)}
                                       >
                                         <svg
@@ -453,7 +471,7 @@ const Home: NextPage = () => {
             <div className="flex ">
               <button
                 type="button"
-                className="py-2 px-4 flex justify-center items-center  bg-green-500 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-12 h-12 rounded-lg "
+                className="py-2 px-4 flex justify-center items-center  bg-green-500 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  w-12 h-12 rounded-lg "
                 onClick={openModal}
               >
                 <svg
