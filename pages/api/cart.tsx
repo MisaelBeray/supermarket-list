@@ -50,9 +50,10 @@ export default async (
           totalCart: number;
         } = req.body;
 
-        await db
-          .collection("cart")
-          .updateOne(
+        const existCartUser = await db.collection("cart").findOne({ email });
+
+        if (existCartUser) {
+          await db.collection("cart").updateOne(
             { email: email },
             {
               $set: {
@@ -63,11 +64,22 @@ export default async (
             }
           );
 
-        res.status(200).json(response);
-        break;
+          res.status(200).json(response);
+          break;
+        } else {
+          await db.collection("cart").insertOne({
+            email,
+            updatedAt,
+            itens,
+            totalCart,
+          });
+
+          res.status(200).json(response);
+          break;
+        }
       }
       case "DELETE": {
-       /*  const {
+        /*  const {
           id,
           email,
         }: {

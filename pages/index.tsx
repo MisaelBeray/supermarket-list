@@ -84,6 +84,7 @@ const Home: NextPage = () => {
   const [qty, setQty] = useState(null);
   const [price, setPrice] = useState(null);
   const [totalCart, setTotalCart] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const { data } = useSWR(
     !loading ? `/api/cart/${session?.user.email}` : null,
@@ -91,6 +92,7 @@ const Home: NextPage = () => {
   );
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenError, setIsOpenError] = useState(false);
 
   function closeModal() {
     setIsOpen(false);
@@ -100,16 +102,25 @@ const Home: NextPage = () => {
     setIsOpen(true);
   }
 
+  function closeErrorModal() {
+    setIsOpen(true);
+    setIsOpenError(false);
+  }
+
+  function openErrorModal() {
+    setIsOpenError(true);
+  }
+
   const handleDelete = async (itemNumber) => {
     const data = {
       email: session?.user?.email,
       id: itemNumber,
     };
 
-    const itemWillDelete = items.filter(item => item.id === data.id);
+    const itemWillDelete = items.filter((item) => item.id === data.id);
     setTotalCart(truncate(totalCart - itemWillDelete[0].totalPrice, 2));
 
-    const newItems = items.filter(item => item.id !== data.id);
+    const newItems = items.filter((item) => item.id !== data.id);
     setItens(newItems);
 
     const dataCart = {
@@ -131,49 +142,53 @@ const Home: NextPage = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    let newItems = [];
-    newItems = items;
+    if (price && qty) {
+      let newItems = [];
+      newItems = items || [];
 
-    const lastIdItem = items.slice(-1).pop();
-    
-    newItems.push({
-      id: Number(((lastIdItem || {}).id || 0) + 1),
-      unPrice: Number(price),
-      qty: Number(qty),
-      totalPrice: Number(qty) * Number(price),
-    });
+      const lastIdItem = items?.slice(-1).pop() || { id: 1 };
 
-    setItens(newItems);
+      newItems.push({
+        id: Number(lastIdItem.id + 1),
+        unPrice: Number(price),
+        qty: Number(qty),
+        totalPrice: Number(qty) * Number(price),
+      });
 
-    const result = newItems.reduce(function (acc, obj) {
-      return acc + obj.totalPrice;
-    }, 0);
+      setItens(newItems);
 
-    setTotalCart(Number(truncate(result, 2)));
+      const result = newItems.reduce(function (acc, obj) {
+        return acc + obj.totalPrice;
+      }, 0);
 
-    const data = {
-      email: session?.user?.email,
-      updatedAt: Date.now,
-      itens: items,
-      totalCart: Number(truncate(result, 2)),
-    };
+      setTotalCart(Number(truncate(result, 2)));
 
-    try {
-      await axios.post(`${process.env.NEXT_PUBLIC_URL}/api/cart`, data);
-    } catch (err) {
-      alert(
-        err?.response?.data?.error || "Houve um problema na adição do item"
-      );
+      const data = {
+        email: session?.user?.email,
+        updatedAt: Date.now,
+        itens: newItems,
+        totalCart: Number(truncate(result, 2)),
+      };
+
+      try {
+        await axios.post(`${process.env.NEXT_PUBLIC_URL}/api/cart`, data);
+      } catch (err) {
+        alert(
+          err?.response?.data?.error || "Houve um problema na adição do item"
+        );
+      }
+
+      closeModal();
+    } else {
+      setErrorMessage("Todos os campos devem estar preenchidos.");
+      openErrorModal();
     }
-
-    closeModal();
-  
   };
 
   useEffect(() => {
     setItens(data?.data?.itens);
 
-    if (data?.data?.itens.length) {
+    if (data?.data && data?.data?.itens.length) {
       const result = data?.data?.itens.reduce(function (acc, obj) {
         return acc + obj.totalPrice;
       }, 0);
@@ -223,6 +238,68 @@ const Home: NextPage = () => {
               <title>Supermarket List</title>
               <link rel="icon" href="/grocery.ico" />
             </Head>
+
+            <Transition appear show={isOpenError} as={Fragment}>
+              <Dialog
+                as="div"
+                className="fixed inset-0 z-10 overflow-y-auto"
+                onClose={closeErrorModal}
+              >
+                <div className="min-h-screen px-4 text-center">
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Dialog.Overlay className="fixed inset-0" />
+                  </Transition.Child>
+
+                  <span
+                    className="inline-block h-screen align-middle"
+                    aria-hidden="true"
+                  >
+                    &#8203;
+                  </span>
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0 scale-95"
+                    enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100 scale-100"
+                    leaveTo="opacity-0 scale-95"
+                  >
+                    <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg font-medium leading-6 text-gray-900"
+                      >
+                        Aviso:
+                      </Dialog.Title>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          {errorMessage}
+                        </p>
+                      </div>
+
+                      <div className="mt-8   flex flex-col items-center justify-center ">
+                        <button
+                          type="button"
+                          className="inline-flex justify-center px-4 py-2 text-sm font-medium text-blue-900 bg-blue-100 border border-transparent rounded-md hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                          onClick={closeErrorModal}
+                        >
+                          Concordar
+                        </button>
+                      </div>
+                    </div>
+                  </Transition.Child>
+                </div>
+              </Dialog>
+            </Transition>
 
             <Transition appear show={isOpen} as={Fragment}>
               <Dialog
