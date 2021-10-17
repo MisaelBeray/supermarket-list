@@ -152,7 +152,7 @@ const Home: NextPage = () => {
         id: Number(lastIdItem.id + 1),
         unPrice: Number(price),
         qty: Number(qty),
-        totalPrice: truncate(Number(qty) * Number(price), 2),
+        totalPrice: Number(truncate(Number(qty) * Number(price), 2)),
       });
 
       setItens(newItems);
@@ -442,31 +442,31 @@ const Home: NextPage = () => {
                         <tr>
                           <th
                             scope="col"
-                            className="px-5 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
+                            className="px-2 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
                           >
                             Item
                           </th>
                           <th
                             scope="col"
-                            className="px-5 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
+                            className="px-2 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
                           >
                             Un.
                           </th>
                           <th
                             scope="col"
-                            className="px-5 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
+                            className="px-2 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
                           >
                             Preço
                           </th>
                           <th
                             scope="col"
-                            className="px-5 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
+                            className="px-2 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
                           >
                             Total
                           </th>
                           <th
                             scope="col"
-                            className="px-5 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
+                            className="px-2 py-3 bg-white  border-b border-gray-200 text-gray-800  text-left text-sm uppercase font-normal"
                           ></th>
                         </tr>
                       </thead>
@@ -475,7 +475,7 @@ const Home: NextPage = () => {
                           return (
                             <>
                               <tr>
-                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <td className="px-2 py-5 border-b border-gray-200 bg-white text-sm">
                                   <div className="flex items-center">
                                     <div className="ml-3">
                                       <p className="text-gray-900 whitespace-no-wrap">
@@ -484,7 +484,7 @@ const Home: NextPage = () => {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <td className="px-2 py-5 border-b border-gray-200 bg-white text-sm">
                                   <div className="flex items-center">
                                     <div className="ml-3">
                                       <p className="text-gray-900 whitespace-no-wrap">
@@ -493,7 +493,7 @@ const Home: NextPage = () => {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <td className="px-2 py-5 border-b border-gray-200 bg-white text-sm">
                                   <div className="flex items-center">
                                     <div className="ml-3">
                                       <p className="text-gray-900 whitespace-no-wrap">
@@ -502,7 +502,7 @@ const Home: NextPage = () => {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <td className="px-2 py-5 border-b border-gray-200 bg-white text-sm">
                                   <div className="flex items-center">
                                     <div className="ml-3">
                                       <p className="text-gray-900 whitespace-no-wrap">
@@ -511,7 +511,7 @@ const Home: NextPage = () => {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                <td className="px-2 py-5 border-b border-gray-200 bg-white text-sm">
                                   <div className="flex items-center">
                                     <div className="ml-3">
                                       <button
