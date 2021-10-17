@@ -152,7 +152,7 @@ const Home: NextPage = () => {
         id: Number(lastIdItem.id + 1),
         unPrice: Number(price),
         qty: Number(qty),
-        totalPrice: Number(qty) * Number(price),
+        totalPrice: truncate(Number(qty) * Number(price), 2),
       });
 
       setItens(newItems);
@@ -281,9 +281,7 @@ const Home: NextPage = () => {
                         Aviso:
                       </Dialog.Title>
                       <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          {errorMessage}
-                        </p>
+                        <p className="text-sm text-gray-500">{errorMessage}</p>
                       </div>
 
                       <div className="mt-8   flex flex-col items-center justify-center ">
