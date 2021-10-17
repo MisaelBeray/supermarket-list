@@ -396,7 +396,7 @@ const Home: NextPage = () => {
               </Dialog>
             </Transition>
 
-            <div className="mt-4 shadow-lg rounded-2xl p-4 bg-white dark:bg-gray-800">
+            <div className="shadow-lg rounded-2xl p-4 bg-white dark:bg-gray-800">
               <div className="flex items-center">
                 <span className="rounded-xl relative p-4 bg-purple-200">
                   <svg
@@ -435,7 +435,7 @@ const Home: NextPage = () => {
               </div>
             </div>
 
-            <div className="">
+            <div className="container  mx-auto px-4 sm:px-8 max-w-3xl">
               <div className="py-8">
                 <div className="max-h-96 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto overflow-y-auto">
                   <div className="inline-block min-w-full shadow rounded-lg overflow-hidden">
